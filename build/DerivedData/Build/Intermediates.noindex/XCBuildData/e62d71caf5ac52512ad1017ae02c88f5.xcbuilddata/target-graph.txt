@@ -1,9 +1,0 @@
-Target dependency graph (4 targets)
-Target 'Essential' in project 'Essential'
-➜ Explicit dependency on target 'KeyboardShortcuts' in project 'KeyboardShortcuts'
-Target 'KeyboardShortcuts' in project 'KeyboardShortcuts'
-➜ Explicit dependency on target 'KeyboardShortcuts' in project 'KeyboardShortcuts'
-➜ Explicit dependency on target 'KeyboardShortcuts_KeyboardShortcuts' in project 'KeyboardShortcuts'
-Target 'KeyboardShortcuts' in project 'KeyboardShortcuts'
-➜ Explicit dependency on target 'KeyboardShortcuts_KeyboardShortcuts' in project 'KeyboardShortcuts'
-Target 'KeyboardShortcuts_KeyboardShortcuts' in project 'KeyboardShortcuts' (no dependencies)
