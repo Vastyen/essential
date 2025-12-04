@@ -147,7 +147,7 @@ Essential requires the following permissions to function:
 
 ## License
 
-[Add your license here]
+Open Source, MIT.
 
 ## Credits
 
