@@ -6,47 +6,69 @@ struct OnboardingView: View {
     @State private var screenCaptureGranted = false
     @State private var selectedIcon: String = "</>"
     @State private var permissionTimer: Timer?
+    @State private var animateHeader = false
+    @State private var currentStep: Int = 1
     
     let onComplete: () -> Void
     
     private let iconOptions = ["</>", "⌘", "⌥"]
+    private let totalSteps = 3
     
     var body: some View {
         VStack(spacing: 0) {
             headerSection
             
             Divider()
+                .opacity(0.3)
             
-            ScrollView {
-                VStack(spacing: 24) {
-                    permissionSection
-                    
-                    Divider()
-                    
-                    iconSelectionSection
-                    
-                    Divider()
-                    
-                    shortcutsSection
-                }
-                .padding(28)
-            }
+            // Progress indicator
+            progressIndicator
             
             Divider()
+                .opacity(0.3)
+            
+            // Step content
+            stepContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentStep)
+            
+            Divider()
+                .opacity(0.3)
             
             footerSection
         }
-        .frame(width: 560, height: 700)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .frame(width: 600, height: 700)
+        .background(
+            ZStack {
+                Color(nsColor: .windowBackgroundColor)
+                
+                // Subtle gradient overlay
+                LinearGradient(
+                    colors: [
+                        Color.blue.opacity(0.03),
+                        Color.purple.opacity(0.02),
+                        Color.clear
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        )
         .onAppear {
             checkPermissions()
             loadSavedIcon()
+            
+            withAnimation(.easeOut(duration: 0.6).delay(0.1)) {
+                animateHeader = true
+            }
             
             permissionTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { _ in
                 let granted = CGPreflightScreenCaptureAccess()
                 DispatchQueue.main.async {
                     if granted != self.screenCaptureGranted {
-                        self.screenCaptureGranted = granted
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                            self.screenCaptureGranted = granted
+                        }
                     }
                     if granted {
                         self.permissionTimer?.invalidate()
@@ -62,169 +84,486 @@ struct OnboardingView: View {
         }
     }
     
+    private var progressIndicator: some View {
+        HStack(spacing: 12) {
+            ForEach(1...totalSteps, id: \.self) { step in
+                HStack(spacing: 8) {
+                    ZStack {
+                        Circle()
+                            .fill(step <= currentStep ? 
+                                  LinearGradient(
+                                      colors: [.blue, .purple],
+                                      startPoint: .topLeading,
+                                      endPoint: .bottomTrailing
+                                  ) :
+                                  LinearGradient(
+                                      colors: [Color.secondary.opacity(0.2), Color.secondary.opacity(0.2)],
+                                      startPoint: .topLeading,
+                                      endPoint: .bottomTrailing
+                                  )
+                            )
+                            .frame(width: 28, height: 28)
+                        
+                        if step < currentStep {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(.white)
+                        } else {
+                            Text("\(step)")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(step == currentStep ? .white : .secondary)
+                        }
+                    }
+                    
+                    if step < totalSteps {
+                        Rectangle()
+                            .fill(step < currentStep ? 
+                                  LinearGradient(
+                                      colors: [.blue, .purple],
+                                      startPoint: .leading,
+                                      endPoint: .trailing
+                                  ) :
+                                  LinearGradient(
+                                      colors: [Color.secondary.opacity(0.2), Color.secondary.opacity(0.2)],
+                                      startPoint: .leading,
+                                      endPoint: .trailing
+                                  )
+                            )
+                            .frame(height: 3)
+                            .cornerRadius(1.5)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 32)
+        .padding(.vertical, 20)
+    }
+    
+    @ViewBuilder
+    private var stepContent: some View {
+        switch currentStep {
+        case 1:
+            step1Permissions
+        case 2:
+            step2Icons
+        case 3:
+            step3Shortcuts
+        default:
+            step1Permissions
+        }
+    }
+    
     private var headerSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             ZStack {
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(LinearGradient(
-                        colors: [.blue, .purple],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 72, height: 72)
+                // Outer glow
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.blue.opacity(0.4),
+                                Color.purple.opacity(0.4)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 88, height: 88)
+                    .blur(radius: 12)
+                    .opacity(animateHeader ? 1 : 0)
+                
+                // Main icon container
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.blue,
+                                Color.purple
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                    .shadow(color: .blue.opacity(0.4), radius: 16, y: 8)
+                    .shadow(color: .purple.opacity(0.2), radius: 8, y: 4)
                 
                 Text(selectedIcon)
-                    .font(.system(size: 28, weight: .bold, design: .monospaced))
+                    .font(.system(size: 32, weight: .bold, design: .monospaced))
                     .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
             }
-            .shadow(color: .blue.opacity(0.3), radius: 10, y: 5)
+            .scaleEffect(animateHeader ? 1 : 0.8)
+            .opacity(animateHeader ? 1 : 0)
             
-            Text("Welcome to Essential")
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            Text("Your clipboard manager for macOS")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-        }
-        .padding(.vertical, 24)
-    }
-    
-    private var permissionSection: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(screenCaptureGranted ? Color.green.opacity(0.2) : Color.orange.opacity(0.2))
-                    .frame(width: 48, height: 48)
+            VStack(spacing: 8) {
+                Text("Welcome to Essential")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
                 
-                Image(systemName: "camera.viewfinder")
-                    .font(.title3)
-                    .foregroundColor(screenCaptureGranted ? .green : .orange)
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Screen Recording")
-                    .font(.headline)
-                
-                Text("Required for screenshot capture")
-                    .font(.caption)
+                Text("Your powerful clipboard manager for macOS")
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.secondary)
             }
-            
-            Spacer()
-            
-            if screenCaptureGranted {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.green)
-            } else {
-                Button("Open Settings") {
-                    requestScreenCapture()
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
-            }
+            .opacity(animateHeader ? 1 : 0)
+            .offset(y: animateHeader ? 0 : 10)
         }
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color(nsColor: .controlBackgroundColor)))
+        .padding(.vertical, 32)
+        .padding(.horizontal, 20)
     }
     
-    private var iconSelectionSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "menubar.rectangle")
-                    .foregroundColor(.purple)
-                Text("Menu Bar Icon")
-                    .font(.headline)
+    // Step 1: Permissions
+    private var step1Permissions: some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 12) {
+                Image(systemName: "lock.shield.fill")
+                    .font(.system(size: 56))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.blue, .purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: .blue.opacity(0.3), radius: 12, y: 4)
+                
+                Text("Step 1: Permissions")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                
+                Text("Essential needs permission to capture screenshots")
+                    .font(.system(size: 14))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
             }
             
-            Text("Choose your preferred icon")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
             HStack(spacing: 16) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(
+                            screenCaptureGranted ?
+                            LinearGradient(
+                                colors: [Color.green.opacity(0.2), Color.green.opacity(0.15)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ) :
+                            LinearGradient(
+                                colors: [Color.orange.opacity(0.2), Color.orange.opacity(0.15)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 70, height: 70)
+                    
+                    Image(systemName: "camera.viewfinder")
+                        .font(.system(size: 32))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: screenCaptureGranted ? [.green, .green.opacity(0.8)] : [.orange, .orange.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+                .shadow(color: (screenCaptureGranted ? Color.green : Color.orange).opacity(0.3), radius: 12, y: 4)
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Screen Recording")
+                        .font(.system(size: 16, weight: .semibold))
+                    
+                    Text("Required for screenshot capture. Grant permission in System Settings.")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                
+                Spacer()
+                
+                if screenCaptureGranted {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.green, .green.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        
+                        Text("Granted")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.green)
+                    }
+                    .transition(.scale.combined(with: .opacity))
+                } else {
+                    Button {
+                        requestScreenCapture()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "gear")
+                                .font(.system(size: 12))
+                            Text("Open Settings")
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                }
+            }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(nsColor: .controlBackgroundColor))
+                    .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
+            )
+        }
+        .padding(.horizontal, 32)
+        .padding(.vertical, 20)
+    }
+    
+    // Step 2: Icon Selection
+    private var step2Icons: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 12) {
+                Image(systemName: "menubar.rectangle")
+                    .font(.system(size: 56))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.purple, .blue],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: .purple.opacity(0.3), radius: 12, y: 4)
+                
+                Text("Step 2: Menu Bar Icon")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                
+                Text("Choose your preferred icon style for the menu bar")
+                    .font(.system(size: 14))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            
+            HStack(spacing: 20) {
                 ForEach(iconOptions, id: \.self) { icon in
                     iconButton(icon)
                 }
             }
         }
+        .padding(.horizontal, 32)
+        .padding(.vertical, 20)
     }
     
     private func iconButton(_ icon: String) -> some View {
         Button {
-            selectedIcon = icon
-            saveIcon(icon)
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedIcon = icon
+                saveIcon(icon)
+            }
         } label: {
-            Text(icon)
-                .font(.system(
-                    size: icon == "</>" ? 24 : 33,
-                    weight: .bold,
-                    design: .monospaced
-                ))
-                .frame(width: 80, height: 60)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(selectedIcon == icon ? Color.accentColor.opacity(0.2) : Color(nsColor: .controlBackgroundColor))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(selectedIcon == icon ? Color.accentColor : Color.clear, lineWidth: 2)
-                )
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        selectedIcon == icon ?
+                        LinearGradient(
+                            colors: [Color.accentColor.opacity(0.2), Color.accentColor.opacity(0.15)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ) :
+                        LinearGradient(
+                            colors: [Color(nsColor: .controlBackgroundColor), Color(nsColor: .controlBackgroundColor)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 100, height: 85)
+                
+                Text(icon)
+                    .font(.system(
+                        size: icon == "</>" ? 32 : 42,
+                        weight: .bold,
+                        design: .monospaced
+                    ))
+                    .foregroundColor(selectedIcon == icon ? .accentColor : .primary)
+            }
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(
+                        selectedIcon == icon ?
+                        LinearGradient(
+                            colors: [.accentColor, .accentColor.opacity(0.6)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ) :
+                        LinearGradient(
+                            colors: [.clear, .clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: selectedIcon == icon ? 2.5 : 0
+                    )
+            )
+            .shadow(
+                color: selectedIcon == icon ? Color.accentColor.opacity(0.3) : .clear,
+                radius: 10,
+                y: 5
+            )
         }
         .buttonStyle(.plain)
+        .scaleEffect(selectedIcon == icon ? 1.05 : 1.0)
     }
     
-    private var shortcutsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "keyboard")
-                    .foregroundColor(.blue)
-                Text("Keyboard Shortcuts")
-                    .font(.headline)
+    // Step 3: Shortcuts
+    private var step3Shortcuts: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 12) {
+                Image(systemName: "keyboard.fill")
+                    .font(.system(size: 56))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.blue, .cyan],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: .blue.opacity(0.3), radius: 12, y: 4)
+                
+                Text("Step 3: Keyboard Shortcuts")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                
+                Text("Learn the essential shortcuts to get started")
+                    .font(.system(size: 14))
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
             }
             
-            VStack(alignment: .leading, spacing: 8) {
-                shortcutRow("⌘ ⇧ V", "Open clipboard history")
-                shortcutRow("⌘ ⇧ 3", "Screenshot full screen")
-                shortcutRow("⌘ ⇧ 4", "Screenshot selection")
-            }
+            shortcutRow("⌘ ⇧ V", "Open clipboard history")
         }
+        .padding(.horizontal, 32)
+        .padding(.vertical, 20)
     }
     
     private func shortcutRow(_ keys: String, _ description: String) -> some View {
-        HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             Text(keys)
-                .font(.system(.caption, design: .monospaced))
-                .fontWeight(.medium)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.secondary.opacity(0.2))
-                .cornerRadius(4)
+                .font(.system(size: 16, weight: .bold, design: .monospaced))
+                .foregroundColor(.primary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.secondary.opacity(0.12),
+                                    Color.secondary.opacity(0.08)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+                )
             
             Text(description)
-                .font(.subheadline)
+                .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(nsColor: .controlBackgroundColor))
+                .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
+        )
     }
     
     private var footerSection: some View {
-        HStack {
-            Spacer()
-            
-            Button {
-                saveIcon(selectedIcon)
-                UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-                onComplete()
-            } label: {
-                HStack(spacing: 6) {
-                    Text("Get Started")
-                    Image(systemName: "arrow.right")
+        VStack(spacing: 8) {
+            HStack {
+                if currentStep > 1 {
+                    Button {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            currentStep -= 1
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("Back")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
+                }
+                
+                Spacer()
+                
+                if currentStep < totalSteps {
+                    Button {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            currentStep += 1
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text("Next")
+                                .font(.system(size: 14, weight: .semibold))
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.regular)
+                } else {
+                    Button {
+                        saveIcon(selectedIcon)
+                        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+                        UserDefaults.standard.synchronize() // Forzar sincronización
+                        onComplete()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Text("Get Started")
+                                .font(.system(size: 15, weight: .semibold))
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .shadow(color: .blue.opacity(0.3), radius: 8, y: 4)
                 }
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            
+            Text("Developed by @Vastyen. Open Source Project Essential")
+                .font(.system(size: 10))
+                .foregroundColor(.secondary.opacity(0.7))
         }
-        .padding(20)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .background(
+            LinearGradient(
+                colors: [
+                    Color(nsColor: .windowBackgroundColor).opacity(0.8),
+                    Color(nsColor: .windowBackgroundColor)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
     }
     
     private func checkPermissions() {

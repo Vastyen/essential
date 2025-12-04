@@ -1,0 +1,32 @@
+{
+  "source": "/Users/vastyen/Workspace/Essential/Essential/build/DerivedData/SourcePackages/checkouts/KeyboardShortcuts/Sources/KeyboardShortcuts/Recorder.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "record_shortcut",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "record_shortcut",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 177
+        }
+      },
+      {
+        "comment": "",
+        "key": "record_shortcut",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 182
+        }
+      }
+    ]
+  },
+  "version": 1
+}

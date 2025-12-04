@@ -1,0 +1,16 @@
+{
+  "source": "/Users/vastyen/Workspace/Essential/Essential/Essential/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Hello, world!",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 9
+        }
+      }
+    ]
+  },
+  "version": 1
+}

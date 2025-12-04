@@ -11,6 +11,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Sincronizar UserDefaults para asegurar que se guarde
+        UserDefaults.standard.synchronize()
+        
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
         
         if hasCompletedOnboarding {
@@ -38,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         onboardingWindow?.delegate = self
         
         if let screen = NSScreen.main {
-            let size = NSSize(width: 560, height: 660)
+            let size = NSSize(width: 600, height: 700)
             let visibleFrame = screen.visibleFrame
             let x = visibleFrame.origin.x + (visibleFrame.width - size.width) / 2
             let y = visibleFrame.origin.y + (visibleFrame.height - size.height) / 2
@@ -52,8 +55,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func startApp() {
         NSApp.setActivationPolicy(.accessory)
         
+        // Habilitar launch at login siempre
         enableLaunchAtLogin()
-        requestScreenRecordingPermissions()
+        
+        // Solo verificar permisos, no pedirlos si ya se completó el onboarding
+        // Los permisos ya se pidieron durante el onboarding
+        let hasPermission = CGPreflightScreenCaptureAccess()
+        if hasPermission {
+            print("✅ Screen Recording permission already granted")
+        } else {
+            print("⚠️ Screen Recording permission not granted (user can enable in Settings)")
+        }
+        
         checkAccessibilityPermissions()
 
         statusBarController = StatusBarController(clipboardStore: clipboardStore)
@@ -75,22 +88,66 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if #available(macOS 13.0, *) {
             do {
                 let service = SMAppService.mainApp
-                if service.status == .notRegistered {
+                let status = service.status
+                
+                print("📋 Launch at Login status: \(status)")
+                
+                switch status {
+                case .notRegistered:
                     try service.register()
                     print("✅ Launch at Login enabled (SMAppService)")
-                } else {
+                case .enabled:
                     print("✅ Launch at Login already enabled")
+                case .requiresApproval:
+                    // En macOS 13+, el usuario puede necesitar aprobar manualmente
+                    print("⚠️ Launch at Login requires user approval")
+                    print("   Go to: System Settings → General → Login Items")
+                    // Intentar registrar de todos modos
+                    do {
+                        try service.register()
+                        print("✅ Launch at Login registration attempted")
+                    } catch {
+                        print("⚠️ Failed to register: \(error)")
+                    }
+                case .notFound:
+                    print("⚠️ Launch at Login service not found")
+                    // Intentar registrar de todos modos
+                    do {
+                        try service.register()
+                        print("✅ Launch at Login registration attempted")
+                    } catch {
+                        print("⚠️ Failed to register: \(error)")
+                    }
+                @unknown default:
+                    print("⚠️ Unknown Launch at Login status: \(status.rawValue)")
+                    // Intentar registrar de todos modos
+                    do {
+                        try service.register()
+                        print("✅ Launch at Login registration attempted")
+                    } catch {
+                        print("⚠️ Failed to register: \(error)")
+                    }
                 }
             } catch {
                 print("⚠️ Failed to enable Launch at Login: \(error)")
+                if let bundleIdentifier = Bundle.main.bundleIdentifier {
+                    print("   Bundle ID: \(bundleIdentifier)")
+                }
             }
         } else {
-            let bundleIdentifier = Bundle.main.bundleIdentifier ?? "open.Essential"
+            // Para macOS 12 y anteriores
+            guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
+                print("⚠️ Failed to get bundle identifier")
+                return
+            }
+            
             let success = SMLoginItemSetEnabled(bundleIdentifier as CFString, true)
             if success {
                 print("✅ Launch at Login enabled (SMLoginItemSetEnabled)")
             } else {
                 print("⚠️ Failed to enable Launch at Login")
+                print("   Bundle ID: \(bundleIdentifier)")
+                print("   Note: App may need to be in /Applications folder")
             }
         }
     }
