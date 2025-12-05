@@ -126,5 +126,3 @@ Allows Essential to intercept `⌘⇧3` / `⌘⇧4` reliably.
 MIT — free and open source.
 
 ---
-
-Si quieres, también te preparo una versión **aún más corta** para el README principal y dejo esta como *docs/Overview.md*.
