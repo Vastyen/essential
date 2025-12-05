@@ -21,6 +21,10 @@
 * Screenshots go **directly to your clipboard**
 * **Optional saving**: choose a folder where screenshots are stored (default: `~/Pictures`)
 
+  ### Preview
+
+  ![Preview](https://github.com/Vastyen/Essential/blob/a38b1cb548e084ca24590a172e2efbbd87670fcc/Preview.png?raw=true)
+
 ### 🎨 Customization
 
 * Choose your menu-bar icon (`</>`, `⌘`, `⌥`)
