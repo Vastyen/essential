@@ -19,12 +19,12 @@
 * Full screen: **`⌘⇧3`**
 * Selection: **`⌘⇧4`**
 * Screenshots go **directly to your clipboard**
-* **Optional saving**: choose a folder where screenshots are stored (default: `~/Pictures`)
+* **Optional saving**: choose a folder where screenshots are stored (default: `~/Documents/Screenshots`)
 
 ### Preview
 
 <p align="center">
-  <img src="https://github.com/Vastyen/Essential/blob/main/Preview.png" width="800" />
+  <img src="https://github.com/Vastyen/Essential/blob/main/Preview.png?raw=true" width="800" />
 </p>
 
 ### 🎨 Customization
