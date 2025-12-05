@@ -108,6 +108,17 @@ final class StatusBarController: NSObject {
     private func showContextMenu() {
         let menu = NSMenu()
         
+        // Abrir directorio de screenshots
+        let openScreenshotsItem = NSMenuItem(
+            title: "Open Screenshot Folder",
+            action: #selector(openScreenshotsDirectory),
+            keyEquivalent: ""
+        )
+        openScreenshotsItem.target = self
+        menu.addItem(openScreenshotsItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        
         let iconSubmenu = NSMenu()
         let currentIcon = UserDefaults.standard.string(forKey: "menuBarIcon") ?? "</>"
         let iconOptions = ["</>", "⌘", "⌥"]
@@ -138,6 +149,27 @@ final class StatusBarController: NSObject {
         statusItem?.menu = menu
         statusItem?.button?.performClick(nil)
         statusItem?.menu = nil
+    }
+    
+    @objc private func openScreenshotsDirectory() {
+        let screenshotPath = UserDefaults.standard.string(forKey: "screenshotPath") ?? ""
+        var directoryURL: URL
+        
+        if screenshotPath.isEmpty {
+            // Usar la ruta por defecto
+            let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            directoryURL = documentsURL.appendingPathComponent("Screenshots")
+        } else {
+            directoryURL = URL(fileURLWithPath: screenshotPath)
+        }
+        
+        // Crear el directorio si no existe
+        if !FileManager.default.fileExists(atPath: directoryURL.path) {
+            try? FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
+        }
+        
+        // Abrir el directorio en Finder
+        NSWorkspace.shared.open(directoryURL)
     }
     
     @objc private func changeIcon(_ sender: NSMenuItem) {

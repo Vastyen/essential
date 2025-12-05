@@ -45,3 +45,5 @@ final class HotkeyManager {
         print("✅ Hotkeys registered: ⌘⇧V, ⌘⇧3, ⌘⇧4")
     }
 }
+
+

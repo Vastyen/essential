@@ -985,6 +985,8 @@ struct ClipboardEntryRow: View {
     let onDelete: () -> Void
     
     @State private var showDeleteButton = false
+    @State private var isSelected = false
+    @State private var scale: CGFloat = 1.0
     
     var body: some View {
         HStack(spacing: 10) {
@@ -1004,8 +1006,27 @@ struct ClipboardEntryRow: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(isHovered ? Color.accentColor.opacity(0.1) : Color.clear)
         )
+        .scaleEffect(scale)
+        .opacity(isSelected ? 0.6 : 1.0)
         .contentShape(Rectangle())
-        .onTapGesture(perform: onSelect)
+        .onTapGesture {
+            // Animación al seleccionar
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                scale = 0.95
+                isSelected = true
+            }
+            
+            // Ejecutar la acción después de un breve delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                onSelect()
+                
+                // Restaurar el estado
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                    scale = 1.0
+                    isSelected = false
+                }
+            }
+        }
     }
     
     @ViewBuilder
