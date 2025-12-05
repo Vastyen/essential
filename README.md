@@ -23,12 +23,7 @@
 
 ### Preview
 
-![Preview](https://github.com/Vastyen/Essential/raw/main/Preview.png)
-
-<p align="center">
-  <img src="https://github.com/Vastyen/Essential/raw/main/Preview.png" width="800" />
-</p>
-
+<img width="2932" height="2327" alt="Group 1" src="https://github.com/user-attachments/assets/16d4b4e0-8f20-4f86-95e1-2ef1c94ba939" />
 
 ### 🎨 Customization
 
