@@ -24,7 +24,7 @@
 ### Preview
 
 <p align="center">
-  <img src="https://github.com/Vastyen/Essential/blob/a38b1cb548e084ca24590a172e2efbbd87670fcc/Preview.png?raw=true" width="600"/>
+  <img src="https://i.ibb.co/R4GVHdkc/Group-1.png" width="600"/>
 </p>
 
 ### 🎨 Customization
