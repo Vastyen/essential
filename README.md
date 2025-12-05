@@ -23,7 +23,7 @@
 
 ### Preview
 
-![Preview](https://raw.githubusercontent.com/Vastyen/Essential/Preview.png)
+![Preview](https://raw.githubusercontent.com/Vastyen/Essential/main/Preview.png)
 
 ### 🎨 Customization
 
